@@ -121,7 +121,7 @@ class CPU {
   }
 
   void addi(uint32_t rd, uint32_t rs1, int32_t imm) {
-    regs.set(rd, alu.compute("add", static_cast<int32_t>(regs.read_unsigned(rs1)), imm));
+    regs.set(rd, alu.compute("add", regs.read_unsigned(rs1), imm));
   }
 
   void slti(uint32_t rd, uint32_t rs1, int32_t imm) {
@@ -241,14 +241,14 @@ class CPU {
   void execute(uint32_t instruction) {
     if (instruction == 0x0FF00513) {
       uint32_t res = regs.read_unsigned(10);
-      std::cout << (res & 0xFF) << std::endl;
+      //std::cout << (res & 0xFF) << std::endl;
       exit(0);
     }
     Instruction ins(instruction);
     std::string operation = ins.get_op();
-    if (instruction != 0) std::cout << "instruction: " << std::bitset<32>(instruction) << std::endl;
-    if (instruction != 0) std::cout << "pos: " << std::bitset<32>(mem.get_PC()) << std::endl;    
-    if (instruction != 0) std::cout << "op: " << operation<< std::endl;
+    //if (instruction != 0) std::cout << "instruction: " << std::bitset<32>(instruction) << std::endl;
+    //if (instruction != 0) std::cout << "pos: " << std::bitset<32>(mem.get_PC()) << std::endl;    
+    //if (instruction != 0) std::cout << "op: " << operation<< std::endl;
     if (operation == "lb") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();

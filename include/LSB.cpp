@@ -23,8 +23,8 @@ struct LSB_Entry {
 
   LSB_Entry() = default;
 
-  LSB_Entry(LSB_Op op_, uint32_t rob_id, uint32_t vj, uint32_t qj, uint32_t a,
-            uint32_t val = 0, uint32_t q_val = 0, uint32_t inst)
+  LSB_Entry(LSB_Op op_, uint32_t rob_id, uint32_t vj, uint32_t qj, uint32_t a, uint32_t inst,
+            uint32_t val = 0, uint32_t q_val = 0)
       : busy(true), op(op_), ROB_ID(rob_id), Vj(vj), Qj(qj), A(a),
         value(val), Q_val(q_val), execution_cycle(0), instruction(inst) {}
 };

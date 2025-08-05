@@ -6,13 +6,13 @@
 #include <fstream>
 #include "include/cpu.cpp"
 int main() {
-  freopen("testcases/1.out", "w", stdout);
-  std::ifstream infile("testcases/array_test1.data");
+  //freopen("testcases/2.out", "w", stdout);
+  //std::ifstream infile("testcases/array_test2.data");
   std::string s;
   CPU cpu;
   uint32_t store_pos;//扫一遍输入 写入指令的位置
   std::vector<uint8_t> temp_instructions;
-  while (std::getline(infile, s)) {
+  while (std::getline(std::cin, s)) {
     if (s.empty()) continue;
     if (s[0] == '@') {
       store_pos = static_cast<uint32_t>(std::stoi(s.substr(1), nullptr, 16));

@@ -72,8 +72,8 @@ class RegisterFile {
   }
 
   void reset() {
+    reg[0] = 0;
     for (int i = 0; i < REG_SIZE; ++i) {
-      reg[i] = 0;
       reorder[i] = -1;
     }
   }
