@@ -6,8 +6,8 @@
 #include <fstream>
 #include "include/cpu.cpp"
 int main() {
-  //freopen("testcases/2.out", "w", stdout);
-  //std::ifstream infile("testcases/array_test2.data");
+  //freopen("testcases/1.out", "w", stdout);
+  //std::ifstream infile("testcases/array_test1.data");
   std::string s;
   CPU cpu;
   uint32_t store_pos;//扫一遍输入 写入指令的位置

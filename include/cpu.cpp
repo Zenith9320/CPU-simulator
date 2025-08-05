@@ -241,7 +241,7 @@ class CPU {
   void execute(uint32_t instruction) {
     if (instruction == 0x0FF00513) {
       uint32_t res = regs.read_unsigned(10);
-      //std::cout << (res & 0xFF) << std::endl;
+      std::cout << (res & 0xFF) << std::endl;
       exit(0);
     }
     Instruction ins(instruction);
