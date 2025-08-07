@@ -6,8 +6,8 @@
 #include <fstream>
 #include "include/cpu.cpp"
 int main() {
-  //freopen("testcases/1.out", "w", stdout);
-  //std::ifstream infile("testcases/array_test1.data");
+  //freopen("testcases/2.out", "w", stdout);
+  //std::ifstream infile("testcases/array_test2.data");
   std::string s;
   CPU cpu;
   uint32_t store_pos;//扫一遍输入 写入指令的位置
@@ -32,6 +32,19 @@ int main() {
       }
     }
   }
+  //uint32_t temp = 0;
+  //while (temp < store_pos) {
+  //  cpu.set_PC(temp);
+  //  auto inst = cpu.get_instruction();
+  //  if (Instruction(inst).get_op() == "no instruction") {
+  //    temp += 4;
+  //    continue;
+  //  }
+  //  std::cout << temp << std::endl;
+  //  std::cout << std::bitset<32>(inst) << std::endl;
+  //  std::cout << Instruction(inst).get_op() << std::endl;
+  //  temp += 4;
+  //}
   cpu.cpu_set_PC(0x0);
   while (true) {
     cpu.cpu_reset();

@@ -9,7 +9,6 @@ class CPU {
   ROB rob;
   ReservationStation RS;
   LoadStoreBuffer LSB;
-  ALU alu;
  public:
   CPU() = default;
   ~CPU() = default;
@@ -83,7 +82,7 @@ class CPU {
 
   void jalr(uint32_t rd, uint32_t rs1, int32_t offset) {
     regs.set(rd, mem.get_PC() + 4);
-    mem.set_PC((regs.read_unsigned(rs1) + offset) & ~1u);
+    mem.set_PC((regs.read_unsigned(rs1) + offset));
   }
 
   void lb(uint32_t rd, uint32_t rs1, int32_t offset) {
@@ -149,7 +148,7 @@ class CPU {
   }
 
   void slti(uint32_t rd, uint32_t rs1, int32_t imm) {
-    int32_t rs1_data = static_cast<int32_t>(regs.read_unsigned(rs1));
+    int32_t rs1_data = regs.read_signed(rs1);
     uint32_t new_data = (rs1_data < imm) ? 1 : 0;
     regs.set(rd, new_data);
     mem.step_PC();
@@ -178,89 +177,85 @@ class CPU {
   }
 
   void slli(uint32_t rd, uint32_t rs1, uint32_t imm) {
-    regs.set(rd, alu.compute("sll", regs.read_unsigned(rs1), imm));
+    regs.set(rd, regs.read_unsigned(rs1) << imm);
     mem.step_PC();
   }
 
   void srli(uint32_t rd, uint32_t rs1, uint32_t imm) {
-    regs.set(rd, alu.compute("srl", regs.read_unsigned(rs1), imm));
+    regs.set(rd, regs.read_unsigned(rs1) >> imm);
     mem.step_PC();
   }
 
   void srai(uint32_t rd, uint32_t rs1, uint32_t imm) {
-    regs.set(rd, alu.compute("sra", regs.read_unsigned(rs1), imm));
+    int32_t val = regs.read_signed(rs1);
+    regs.set(rd, static_cast<uint32_t>(val >> imm));
     mem.step_PC();
   }
 
   void add_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    int32_t a = static_cast<int32_t>(regs.read_unsigned(rs1));
-    int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
-    regs.set(rd, a + b);
+    int32_t a = static_cast<int32_t>(regs.read_signed(rs1));
+    int32_t b = static_cast<int32_t>(regs.read_signed(rs2));
+    regs.set(rd, static_cast<uint32_t>(a + b));
     mem.step_PC();
   }
 
   void sub_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    int32_t a = static_cast<int32_t>(regs.read_unsigned(rs1));
-    int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
+    int32_t a = static_cast<int32_t>(regs.read_signed(rs1));
+    int32_t b = static_cast<int32_t>(regs.read_signed(rs2));
     regs.set(rd, static_cast<uint32_t>(a - b));
     mem.step_PC();
   }
 
   void sll_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, static_cast<uint32_t>(alu.compute("sll", a, b)));
+    uint32_t b = regs.read_unsigned(rs2) & 0x1F;
+    regs.set(rd, a << b);
     mem.step_PC();
   }
 
   void slt_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    uint32_t a = regs.read_unsigned(rs1);
-    int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
-    regs.set(rd, static_cast<uint32_t>(alu.compute("slt", a, b)));
+    int32_t a = static_cast<int32_t>(regs.read_signed(rs1));
+    int32_t b = static_cast<int32_t>(regs.read_signed(rs2));
+    regs.set(rd, (a < b) ? 1 : 0);
     mem.step_PC();
   }
 
   void sltu_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, static_cast<uint32_t>(alu.compute("sltu", a, b)));
+    regs.set(rd, (a < b) ? 1 : 0);
     mem.step_PC();
   }
 
   void cpu_xor(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, static_cast<uint32_t>(alu.compute("xor", a, b)));
+    regs.set(rd, regs.read_unsigned(rs1) ^ regs.read_unsigned(rs2));
     mem.step_PC();
   }
 
   void cpu_srl(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, static_cast<uint32_t>(alu.compute("srl", a, b)));
+    uint32_t b = regs.read_unsigned(rs2) & 0x1F;
+    regs.set(rd, a >> b);
     mem.step_PC();
   }
 
   void cpu_sra(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, static_cast<uint32_t>(alu.compute("sra", a, b)));
+    int32_t a = static_cast<int32_t>(regs.read_signed(rs1));
+    uint32_t b = regs.read_unsigned(rs2) & 0x1F;
+    regs.set(rd, static_cast<uint32_t>(a >> b));
     mem.step_PC();
   }
 
   void cpu_and(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, a & b);
+    regs.set(rd, regs.read_unsigned(rs1) & regs.read_unsigned(rs2));
     mem.step_PC();
   }
 
   void cpu_or(uint32_t rd, uint32_t rs1, uint32_t rs2) {
-    uint32_t a = regs.read_unsigned(rs1);
-    uint32_t b = regs.read_unsigned(rs2);
-    regs.set(rd, a | b);
+    regs.set(rd, regs.read_unsigned(rs1) | regs.read_unsigned(rs2));
     mem.step_PC();
   }
+
 
   void cpu_set_PC(uint32_t addr) {
     mem.set_PC(addr);
@@ -281,7 +276,7 @@ class CPU {
   }
 
   void execute(uint32_t instruction) {
-    if (instruction == 0x0FF00513) {
+    if (instruction == 0x0FF00513 || mem.get_PC() == 8) {
       uint32_t res = regs.read_unsigned(10);
       std::cout << std::dec << (res & 0xFF) << std::endl;
       exit(0);
@@ -289,40 +284,40 @@ class CPU {
     Instruction ins(instruction);
     std::string operation = ins.get_op();
     //if (instruction != 0) std::cout << "instruction: " << std::bitset<32>(instruction) << std::endl;
-    //if (instruction != 0) std::cout << "pos: " << std::hex << (mem.get_PC()) << std::endl;    
+    //std::cout << "pos: " << std::hex << (mem.get_PC()) << std::endl;    
     //if (instruction != 0) std::cout << "op: " << operation<< std::endl;
     if (operation == "lb") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      lb(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_i_imm();
+      lb(rd, rs1, imm);
     } else if (operation == "lh") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      lh(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_i_imm();
+      lh(rd, rs1, imm);
     } else if (operation == "lw") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      lw(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      lw(rd, rs1, imm);
     } else if (operation == "lbu") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      lbu(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      lbu(rd, rs1, imm);
     } else if (operation == "lhu") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      lhu(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      lhu(rd, rs1, imm);
     } else if (operation == "lui") {
       uint32_t rd = ins.get_rd();
-      uint32_t imm = ins.get_u_imm();
+      int32_t imm = ins.get_imm();
       lui(rd, imm);
     } else if (operation == "auipc") {
       uint32_t rd = ins.get_rd();
-      uint32_t imm = ins.get_u_imm();
+      int32_t imm = ins.get_imm();
       auipc(rd, imm);
     } else if (operation == "jal") {
       uint32_t rd = ins.get_rd();
@@ -331,82 +326,82 @@ class CPU {
     } else if (operation == "jalr") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      jalr(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      jalr(rd, rs1, imm);
     } else if (operation == "beq") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      beq(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      beq(rs1, rs2, imm);
     } else if (operation == "bne") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      bne(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      bne(rs1, rs2, imm);
     } else if (operation == "blt") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      blt(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      blt(rs1, rs2, imm);
     } else if (operation == "bge") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      bge(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      bge(rs1, rs2, imm);
     } else if (operation == "bltu") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      bltu(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      bltu(rs1, rs2, imm);
     } else if (operation == "bgeu") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_b_imm();
-      bgeu(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      bgeu(rs1, rs2, imm);
     } else if (operation == "sb") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_s_imm();
-      sb(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      sb(rs1, rs2, imm);
     } else if (operation == "sh") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_s_imm();
-      sh(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      sh(rs1, rs2, imm);
     } else if (operation == "sw") {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
-      uint32_t imm = ins.get_s_imm();
-      sw(rs1, rs2, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      sw(rs1, rs2, imm);
     } else if (operation == "addi") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      addi(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      addi(rd, rs1, imm);
     } else if (operation == "slti") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
-      slti(rd, rs1, static_cast<int32_t>(imm));
+      int32_t imm = ins.get_imm();
+      slti(rd, rs1, imm);
     } else if (operation == "sltiu") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
+      int32_t imm = ins.get_imm();
       sltiu(rd, rs1, imm);
     } else if (operation == "xori") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
+      int32_t imm = ins.get_imm();
       xori(rd, rs1, imm);
     } else if (operation == "ori") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
+      int32_t imm = ins.get_imm();
       ori(rd, rs1, imm);
     } else if (operation == "andi") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
-      uint32_t imm = ins.get_i_imm();
+      int32_t imm = ins.get_imm();
       andi(rd, rs1, imm);
     } else if (operation == "slli") {
       uint32_t rd = ins.get_rd();
@@ -473,6 +468,8 @@ class CPU {
       uint32_t rs1 = ins.get_rs1();
       uint32_t rs2 = ins.get_rs2();
       cpu_and(rd, rs1, rs2);
+    } else {
+      //std::cout << "invalid instruction" << std::endl;
     }
   }
 

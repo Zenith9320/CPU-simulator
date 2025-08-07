@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <vector>
 
-const int REG_SIZE = 32;
+const int REG_SIZE = 64;
 
 class RegisterFile {
  private:
