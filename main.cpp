@@ -33,13 +33,13 @@ int main() {
     }
   }
   cpu.cpu_set_PC(0x0);
-  
   while (true) {
     cpu.cpu_reset();
-    uint32_t old_PC = cpu.get_PC();
+    uint32_t old_pc = cpu.get_PC();
     uint32_t inst = cpu.get_instruction();
     cpu.execute(inst);
-    uint32_t new_PC = cpu.get_PC();
-    if (old_PC == new_PC) cpu.cpu_set_PC(new_PC + 4);
+    if (cpu.get_PC() == old_pc) {
+      cpu.cpu_set_PC(old_pc + 4);
+    }
   }
 }
