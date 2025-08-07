@@ -22,6 +22,7 @@ class CPU {
     if (regs.if_equal(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
@@ -29,6 +30,7 @@ class CPU {
     if (!regs.if_equal(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
@@ -36,6 +38,7 @@ class CPU {
     if (regs.if_geq_signed(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
@@ -43,6 +46,7 @@ class CPU {
     if (regs.if_geq_unsigned(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
@@ -50,6 +54,7 @@ class CPU {
     if (regs.if_less_signed(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
@@ -57,17 +62,18 @@ class CPU {
     if (regs.if_less_unsigned(rs1, rs2)) {
       mem.modify_PC(offset);
     } else {
+      mem.step_PC();
     }
   }
 
   void lui(uint32_t rd, uint32_t imm) {
     regs.set(rd, imm << 12);
-    
+    mem.step_PC();
   }
 
   void auipc(uint32_t rd, uint32_t imm) {
     regs.set(rd, (imm << 12) + mem.get_PC());
-    
+    mem.step_PC();
   }
 
   void jal(uint32_t rd, int32_t offset) {
@@ -84,44 +90,44 @@ class CPU {
     int8_t byte = static_cast<int8_t>(mem.read_byte(regs.read_unsigned(rs1) + offset));
     uint32_t data = static_cast<uint32_t>(byte);//先符号扩展再转化成无符号32位
     regs.set(rd, data);
-    
+    mem.step_PC();
   }
 
   void lbu(uint32_t rd, uint32_t rs1, int32_t offset) {
     uint32_t data = static_cast<uint32_t>(mem.read_byte(regs.read_unsigned(rs1) + offset));
     regs.set(rd, data);
-    
+    mem.step_PC();
   }
 
   void lh(uint32_t rd, uint32_t rs1, int32_t offset) {
     int16_t halfword = static_cast<int16_t>(mem.read_halfword(regs.read_unsigned(rs1) + offset));
     uint32_t data = static_cast<uint32_t>(halfword);
     regs.set(rd, data);
-    
+    mem.step_PC();
   }
 
   void lhu(uint32_t rd, uint32_t rs1, int32_t offset) {
     uint32_t data = static_cast<uint32_t>(mem.read_halfword(regs.read_unsigned(rs1) + offset));
     regs.set(rd, data);
-    
+    mem.step_PC();
   }
 
   void lw(uint32_t rd, uint32_t rs1, int32_t offset) {
     regs.set(rd, mem.read_word(regs.read_unsigned(rs1) + offset));
-    
+    mem.step_PC();
   }
 
   void sb(uint32_t rs1, uint32_t rs2, int32_t offset) {
     uint8_t data = static_cast<uint8_t>(regs.read_unsigned(rs2) & 0xFF);
     mem.write_byte(regs.read_unsigned(rs1) + offset, data);
-    
+    mem.step_PC();
   }
 
   void sh(uint32_t rs1, uint32_t rs2, int32_t offset) {
     uint16_t data = static_cast<uint16_t>(regs.read_unsigned(rs2) & 0xFFFF);
     mem.write_byte(regs.read_unsigned(rs1) + offset, static_cast<uint8_t>(data & 0xFF));
     mem.write_byte(regs.read_unsigned(rs1) + offset + 1, static_cast<uint8_t>((data >> 8) & 0xFF));
-    
+    mem.step_PC();
   }
 
   void sw(uint32_t rs1, uint32_t rs2, int32_t offset) {
@@ -130,7 +136,7 @@ class CPU {
     mem.write_byte(regs.read_unsigned(rs1) + offset + 1, static_cast<uint8_t>((data >> 8) & 0xFF));
     mem.write_byte(regs.read_unsigned(rs1) + offset + 2, static_cast<uint8_t>((data >> 16) & 0xFF));
     mem.write_byte(regs.read_unsigned(rs1) + offset + 3, static_cast<uint8_t>((data >> 24) & 0xFF));
-    
+    mem.step_PC();
   }
 
   void cpu_write_byte(uint32_t addr, uint8_t byte) {
@@ -139,121 +145,121 @@ class CPU {
 
   void addi(uint32_t rd, uint32_t rs1, int32_t imm) {
     regs.set(rd, regs.read_signed(rs1) + imm);
-    
+    mem.step_PC();
   }
 
   void slti(uint32_t rd, uint32_t rs1, int32_t imm) {
     int32_t rs1_data = static_cast<int32_t>(regs.read_unsigned(rs1));
     uint32_t new_data = (rs1_data < imm) ? 1 : 0;
     regs.set(rd, new_data);
-    
+    mem.step_PC();
   }
 
   void sltiu(uint32_t rd, uint32_t rs1, uint32_t imm) {
     uint32_t rs1_data = regs.read_unsigned(rs1);
     uint32_t new_data = (rs1_data < imm) ? 1 : 0;
     regs.set(rd, new_data);
-    
+    mem.step_PC();
   }
 
   void xori(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, regs.read_unsigned(rs1) ^ imm);
-    
+    mem.step_PC();
   }
 
   void ori(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, regs.read_unsigned(rs1) | imm);
-    
+    mem.step_PC();
   }
 
   void andi(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, regs.read_unsigned(rs1) & imm);
-    
+    mem.step_PC();
   }
 
   void slli(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, alu.compute("sll", regs.read_unsigned(rs1), imm));
-    
+    mem.step_PC();
   }
 
   void srli(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, alu.compute("srl", regs.read_unsigned(rs1), imm));
-    
+    mem.step_PC();
   }
 
   void srai(uint32_t rd, uint32_t rs1, uint32_t imm) {
     regs.set(rd, alu.compute("sra", regs.read_unsigned(rs1), imm));
-    
+    mem.step_PC();
   }
 
   void add_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     int32_t a = static_cast<int32_t>(regs.read_unsigned(rs1));
     int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
     regs.set(rd, a + b);
-    
+    mem.step_PC();
   }
 
   void sub_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     int32_t a = static_cast<int32_t>(regs.read_unsigned(rs1));
     int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
     regs.set(rd, static_cast<uint32_t>(a - b));
-    
+    mem.step_PC();
   }
 
   void sll_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, static_cast<uint32_t>(alu.compute("sll", a, b)));
-    
+    mem.step_PC();
   }
 
   void slt_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     int32_t b = static_cast<int32_t>(regs.read_unsigned(rs2));
     regs.set(rd, static_cast<uint32_t>(alu.compute("slt", a, b)));
-    
+    mem.step_PC();
   }
 
   void sltu_op(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, static_cast<uint32_t>(alu.compute("sltu", a, b)));
-    
+    mem.step_PC();
   }
 
   void cpu_xor(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, static_cast<uint32_t>(alu.compute("xor", a, b)));
-    
+    mem.step_PC();
   }
 
   void cpu_srl(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, static_cast<uint32_t>(alu.compute("srl", a, b)));
-    
+    mem.step_PC();
   }
 
   void cpu_sra(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, static_cast<uint32_t>(alu.compute("sra", a, b)));
-    
+    mem.step_PC();
   }
 
   void cpu_and(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, a & b);
-    
+    mem.step_PC();
   }
 
   void cpu_or(uint32_t rd, uint32_t rs1, uint32_t rs2) {
     uint32_t a = regs.read_unsigned(rs1);
     uint32_t b = regs.read_unsigned(rs2);
     regs.set(rd, a | b);
-    
+    mem.step_PC();
   }
 
   void cpu_set_PC(uint32_t addr) {
