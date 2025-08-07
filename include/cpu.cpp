@@ -282,9 +282,9 @@ class CPU {
     }
     Instruction ins(instruction);
     std::string operation = ins.get_op();
-    if (instruction != 0) std::cout << "instruction: " << std::bitset<32>(instruction) << std::endl;
-    if (instruction != 0) std::cout << "pos: " << std::hex << (mem.get_PC()) << std::endl;    
-    if (instruction != 0) std::cout << "op: " << operation<< std::endl;
+    //if (instruction != 0) std::cout << "instruction: " << std::bitset<32>(instruction) << std::endl;
+    //if (instruction != 0) std::cout << "pos: " << std::hex << (mem.get_PC()) << std::endl;    
+    //if (instruction != 0) std::cout << "op: " << operation<< std::endl;
     if (operation == "lb") {
       uint32_t rd = ins.get_rd();
       uint32_t rs1 = ins.get_rs1();
